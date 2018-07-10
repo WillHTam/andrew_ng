@@ -11,11 +11,11 @@ end
 disp('v')
 v
 
-% disp('1')
-% x*A
+disp('1')
+x*A
 
-% disp('2')
-% Ax
+disp('2')
+Ax
 
 disp('3')
 x' * A
