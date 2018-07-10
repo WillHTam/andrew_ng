@@ -90,3 +90,9 @@ floor(a)
 % round up
 % 0.5 to 1
 floor(a)
+
+% get element wise maximum of 2 rand gen 3x3 matrices
+max(rand(3), rand(3))
+
+% get column wise maximum
+max(A,[],1)
