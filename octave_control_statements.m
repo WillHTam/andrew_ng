@@ -38,6 +38,11 @@ else,
     disp('meow!');
 end;
 
+disp('use square function from squareThisNumber.m file')
 squareThisNumber(2)
 
+disp('using cost function')
+X = [1 1; 1 2; 1 3]
 y = [1; 2; 3;]
+theta = [0; 0];
+j = costFunctionJ(X,y,theta)
