@@ -94,5 +94,27 @@ floor(a)
 % get element wise maximum of 2 rand gen 3x3 matrices
 max(rand(3), rand(3))
 
-% get column wise maximum
+% get column wise maximum, maximum of each column
+A
 max(A,[],1)
+
+% get row wise maximums
+max(A,[],2)
+
+% to get max of whole thing
+max(max(A))
+% or turn whole thing into vector
+max(A(:))
+
+% is it really magic?
+A = magic(9)
+sum(A,1) % per column sum of A
+sum(A,2) % row wise sum
+
+% check diagonal
+x = A .* eye(9) % convert everything to zero except for diagonal
+sum(sum(x)) % indeed 369
+
+% get inverse
+A = magic(3)
+pinv(A)

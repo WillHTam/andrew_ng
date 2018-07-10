@@ -7,6 +7,10 @@ b = 'yes';
 a;
 b
 
+% comma chain commands
+% semicolons would do the same thing, but not print out the assignments
+a=1, b=2, c=3
+
 % simple math
 6*8;
 2^3; % exponent
