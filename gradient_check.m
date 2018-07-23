@@ -1,4 +1,5 @@
 % numerically computing the approximation of all partial derivatives
+EPSILON = 1e-4;
 for i = 1;n,
     thetaPlus = theta;
     thetaPlus(i) = thetaPlus(i) + EPSILON;
@@ -13,5 +14,4 @@ end;
 % and check that gradApprox (somewhat)= DVec
 % if these two numbers are similar, then be confident that the derivatives are being 
 % calculated correctly. 
-
-
+% This only needs to be done once to verify that the backprop algorithm is correct, then turned off
