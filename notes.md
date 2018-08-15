@@ -774,5 +774,228 @@ z= Ureduce' * X;  % keep x0, don't use x0=1
 ## Anomaly Detection
 ### Problem Motivation
 * Mainly unsupervised, but there are aspects which are related to supervised learning
+* For example, for an aircraft engine have two features of:  heat generated and vibration intensity.  A new engine x_test which is far away from the cluster of OK engines could be considered anomalous
+	* Is /xtest/ anomalous? 
+	* For this model have p(x), where p is the probability of x being OK
+		* if p(xtest) < Epsilon, flag as anomalous
+		* p(test) >= Epsilon should be okay
+* Similarly for fraud detection
+	* x(i) for features of user i’s activities
+	* Model p(x) from data
+	* Identify unusual users by checking which have p(x) < epsilon
 
+### Gaussian / Normal Distribution
+* NLKEZB0
+* x ~ /N/(mu, sigma^2)
+	* tilde means ‘distributed as’, curly N is ‘normal’
+	* x distributed as normal with this mu and sigma^2 variance param
+	* sigma is std dev, so sigma^2 is variance
+* Probability defined as p(x; mu, sigma^2)
+	* denotes that the probability of x is parameterized by mu and sigma^2
+	* `p(x; mu, sigma^2) = 1/( (2*pi)^(1/2)  * sigma ) * exp( - (x - mu)^2 / 2sigma^2)`
+		* just the formula for the bell shaped curve that expresses the normal distribution
+* mu = 0, sigma = 1 means centered at zero, and of the regular appearance
+* mu = 0, sigma = 0.5 means centered at zero, thinner and taller, since sigma is the width between the center point and the 2nd quartile(?) so it would be half as wide as sigma = 1 
+* mu = (1/m) * sum(i=1 to m of x(i))
+* sigma^2 = (1/m) * sum(i=1 to m of (x(i) - mu)^2)
+	* These parameters are the maximum likelihood estimates of the primes of mu and sigma^2
 
+### Anomaly Detection Algorithm
+* Density estimation
+	* Training set: {x(1),…x(m)}
+	* Each example is x of vector dim n
+		* assume x(m) ~ /N/(mu_m, sigma^2))
+	* p(x) = p(x_1; mu1, sigma1^2)……p(x_n, mu_n, sigma_n^2)
+		* = product(j=1 to n of p(x_j; mu_j, sigma_j^2)
+* Algorithm itself
+	* Choose features /x_i/ that you think might be indicative of anomalous examples
+	* Fit parameters mu1,….,mu_n,   sigma1^2, ….., sigman^2
+		* mu_j = (1/m) * sum(i=1 to m of x_j^i)
+		* sigma_j^2 = (1/m) * sum(i=1 to m of (x_j^i - mu_j)^2)
+	* Given new example x, compute p(x):
+		* p(x) = (product of j=1 to n of (1/(sqrt(2pi)*sigma) * exp( - (x_j - mu_j)^2 / (2 sigma_j^2))
+		* Anomaly if p(x) < epsilon
+*  Set some value for epsilon
+	* doing x_test for 1,2,3 and seeing where it > or  < epsilon will define a region where an example could be denied as anomalous
+	
+### Developing And Evaluating an Anomaly Detection System
+* Once again, need a single number real-number metric to clearly evaluate and decide if it is doing better or worse
+* Assume we have some labeled data, of anomalous and non-anomalous examples.
+	* y=0 if normal, y=1 if anomalous
+* Training set: x(1), x(2), … x(m) assume normal examples / not anomalous, although it’s alright if a few slip through
+	* Also define cross-val and test set, and probably include a few examples that are known to be anomalous
+* 10000 normal examples, 20 anomalous
+	* Put 6000 from normal into training set
+		* These examples used to generate p(x) = p(x1; mu1, sigma1^2)……
+	* 2000 normal, 10 anomalous into cross val set
+	* 2000 normal, 10 anomalous into test set
+* Algorithm evaluation
+	* Fit model p(x) on training set {x1,…,xm}
+	* On a cross validation/test example x, predict
+		* y = 1 if p(x) < epsilon -> anomaly
+		* y = 0 if p(x) >= epsilon -> normal
+	* Possible evaluation metrics:
+		* not good: classification accuracy because of the skewed classes
+		* true positive, false positive, false negative, true negative
+		* precision / recall
+		* F1-score
+	* can also use cross-val set to choose parameter epsilon by choosing the value of epsilon that maximizes the F1 score
+
+### Anomaly Detection vs Supervised Learning
+* Since some of the data is labeled, why don’t we just use logistic regression or a neural network to learn the classification?
+* *Comparison*
+	* Anomaly detection
+		* /Fraud detection, manufacturing, monitoring machines/
+			* A large number of examples of positives could shift it to supervised
+		* Very small number of positive examples (y=1), 0-20 is common
+		* Large number of negative (y=0) examples
+		* Many different ‘types’ of anomalies. Hard for any algorithm to learn from positive examples what the anomalies look like 
+		* future anomalies may look nothing like any of the anomalous examples seen so far
+		* So it may be more effective to just model negative examples with p(x)
+		* Have such a small number of positive examples that it is not possible for a learning algorithm to learn very much from them
+		* Instead take a large set of negative examples and learn p(x) from them.  Reserve the small number of positive examples for validation
+	* Supervised Learning
+		* /Email spam, weather prediction, cancer classification/
+		* Large number of positive and negative examples
+		* Enough positive examples for algorithm to get a sense of what positive examples are like, future positive examples likely to be similar to ones in training set
+	* Even though are are many different types of spam, it is considered more of a supervised learning problem because there are many positive examples to learn from 
+
+### Designing and Selecting Features for an Anomaly Detection Algorithm
+* Plot the data to make sure it looks somewhat Gaussian before feeding it to the algorithm
+	* It’ll actually probably still work even if the data isn’t Gaussian
+	* Plot histogram with `hist()` in Octave
+* If there is a long tail, maybe try transformations to even out the data
+	* log transformation to a tail distribution could turn it into a gaussian distribution
+	* log(x + c), play with constant `c` until it produces a suitable Gaussian distribution
+	* or ` x .^ 0.01` or some other constant 
+* How to come up with features for anomaly detection? 
+	* Error Analysis
+	* Want p(x) large for normal examples x
+		* p(x) small for anomalous examples
+	* Most common problem: p(x) is comparable (eg both large) for normal and anomalous examples
+		* Perhaps find an anomalous example that had the high p for both, and develop a new feature from how it differs from the normal examples
+* Monitoring computers in a data center
+	* Choose features that might take on unusually large or small values in the event of an anomaly
+	* For a data center: memory use, disk access, CPU load, network traffic
+		* Perhaps consider an event where the server gets stuck in an infinite loop, where CPU load grows but network traffic remains low
+		* Might be good to have a new feature of `CPU load / network traffic`
+			* Or even `CPU load ^2 / network traffic`
+			* These features are good to capture irregular behavior
+
+### Multivariate Gaussian Distribution
+* Can catch some anomalies that univariate didn’t.
+* For features in n-dim vector, don’t model p(x1), p(x2)…. separately. Instead model p(x) in one calculation
+	* Parameters: mu in n-dim vector, covariance matrix of n x n
+* `p(x; mu, Sigma) = (1 / (2pi ^ n/2 * det(Sigma)^1/2) * exp((-1/2) * (x-mu)' * Sigma^-1 * (x - mu)`
+	* det(Sigma) being the Octave command for finding the determinant of sigma
+* Changing the covariance matrix to be smaller creates a wider shorter contour graph, larger creates a thinner and taller contour graph
+* Allows the capturing of when you might think two features might be negatively or positively correlated
+
+### Anomaly Detection with Multivariate Gaussian
+* How to estimate mu and Sigma?
+	* mu = (1/m) * sum( i=1 to m of x(i) )
+	* Sigma = (1/m) * sum( i=1 to m of (x(i) - mu)(x(i) - mu)’ )
+* 1 Fit model p(x) with the above calculated parameters
+* Given a new example x, compute with above p(x) for multivariate gaussian distribution
+* flag an anomaly if p(x) < epsilon
+* *When to use Original vs Multivariate Gaussian*
+	* Original Model, computing p(x) individually for each example
+		* Manually create features to capture anomalies where x1,x2 take unusual combinations of values
+			* Like creating the cpu load / memory feature
+		* Computationally cheaper
+		* Scales better to large m
+		* Ok even if m (training set size) is small
+		* More common
+	* Multivariate, computing p(x) all at once
+		* Automatically captures correlations between features
+		* Computationally more expensive
+			* Computing the big p(x) requires multiplication with the inverse of the covariance matrix.  Since it is n x n, could be very large
+		* Must have m > n or else Sigma is non-invertible
+			* Safe to be m > 10n
+		* Able to capture unusual combinations of features
+* Note: if Sigma is non-invertible, it may be that m > n was not satisfied, or there are redundant/linearly dependent features i.e. like x1 = x2, or x3 = x4+x5
+
+### Recommender Systems
+* An important application of machine learning utilized by many companies
+* A system that can select by itself the best features to use
+
+* Problem Formulation - Predicting Movie Ratings
+	* User rates movies 0 to 5 stars
+	* n_u = no. users
+	* n_m = no.movies
+	* r(i,j) = 1 if user j has rated movie i
+	* y(i,j) = rating given by user j to movie i, only defined if r(i,j)=1 {0 to 5}
+	* Theta(j) = parameter vector for user j
+	* x(i) = feature vector for movie i, size n+1, x0 =1
+	* For user j, movie i, predicted rating is `(Theta_j)’ * x(i)`
+	* m(j) = # movies rated by user j
+	* To learn Theta(j): 
+		* min of theta for
+```
+ (1/(2m)) * sum(i:r(i,j)=1 of (prediction - y)^2) 
+	+ lambda/(2m) * sum(sum( theta^2 ) ) 
+```
+		* Very similar to linear regression, where we want to minimize this squared error term. 
+	* Can we predict, perhaps by grouping similar movies, what rating a person would give to a movie they haven’t seen?
+
+### Content-Based Recommender Systems
+* Suppose each movie has a set of features, x1 how much romance, and x2 how much action it has
+	* So each movie is represented as a feature vector of interceptor x0 =1
+		* [1; 0.9; 0] for example
+* For each user j, learn a parameter Theta(j) which is a vector of size n+1.   Predict user j as rating movie i with `(Theta_j)’ * x(i)` stars
+* Essentially applying a different copy of linear regression for each user. This user has their own theta ( a parameter vector), that we use to predict how many stars she will give the movie, given the movie features x1 and x2. Each user will have their own linear function 
+
+### Collaborative Filtering Problem Formulation
+* This algorithm employs /feature learning/, in which it can learn for itself what features to use
+* Given the movie recommendation problem, but x1 and x2 are unknown.   If the movie ratings are given, and each user is able to give us their Theta, then the parameters can be inferred
+	* So we have a User’s Theta and Rating, so solve for x in Theta’ * x = Rating
+	* Given Thetas to learn x(i)
+		* min(1/2) * sum(j:r(i,j)=1 of Theta’ *x(i) - y(i,j))^2 + lambda/2 *sum(1 to
+
+### Collaborative Filtering Optimization Objective
+* Given y,
+	* The recommender system given x, allows us to estimate Theta
+	* Given Theta, we can estimate X
+	* This allows us to iteratively use Theta -> X -> Theta -> X…. and continuously optimize the values with each step 
+* But the final form of this algorithm allows the combination of the two minimizations  into a single objective to minimize both simultaneously
+	* Formula in notes and screenshots
+1. Initialize x and Theta to small random values
+2. Minimize J(x and Theta) using gradient descent or an advanced optimization algorithm
+3. For a user with parameters Teta and a movie with (learned) features X, predict a star rating of Theta’ * X.
+
+### Vectorization : Low Rank Matrix Factorization
+* Given the grid of users, movies, and their rankings, construct a matrix Y(i,j)  where row i, col j represents a specific user’s rating for a specific movie
+	* So of course each element on the matrix can be represented as (theta(j))’ * X(i)
+* The simpler way would be to vectorize this 
+	* Stack X into `[x(1)'; x(2)'; ... x(nm)' ]`
+		* Note that they are transposed and put into their own row
+	*  Theta = `[Theta(1)’;….Theta(nu)’]` (also transposed)
+	* Then to get the desired final representation, multiply X by Theta transpose
+* This is called low rank matrix factorization
+	* Names comes from the property of being a low rank matrix in linear algebra
+
+* An application of using the learned features from collaborative filtering is finding related movies
+	* For each product i, we learn a feature vector x(i) of n dimensions
+* Address the following problem: finding movies j related to movies i
+	* find movies where the distance, abs(x(i) - x(j) is small
+	* This distance being small means that the movies are similar, will have similar values for x1 romance, x2 action and so forth
+	* Ie finding the 5 most similar movies to i, is finding the 5 j movies with the smallest abs(x(i) - x(j))
+
+### Mean Normalization
+* Normalizing each row to a mean of 0 will make the algorithm work better.
+* From the i x j dimensional Y matrix, take the average of each movie (row)
+	* This will create a j dim vector, one for each movie, called mu
+* Then from each element, subtract its row’s average
+* For user j on movie i, predict `theta(j)’ * X(i) + mu_i)`
+/Suppose you have two matrices A and B where A is 5x3 and B is 3x5. Their product is C = AB, a5x5 matrix. Furthermore you have a 5x5 matrix R where every entry is 0 or 1. You want to find the sum of all elements C(i,j) for which the corresponding R(i,j) is 1, and ignore all elements C(i,j) where R(i,j)=0.  One way to do so is the following code/
+```
+C = A * B;
+total = 0;
+for i = 1:5,
+	for j = 1:5,
+		if (R(i,j) == 1)
+			total = total + C(i,j);
+		end
+	end
+end
+```
