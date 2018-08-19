@@ -999,3 +999,103 @@ for i = 1:5,
 	end
 end
 ```
+
+## Large Scale Machine Learning
+ Improving efficiency and architecture
+* Batch GD: Use all m examples in each iteration
+* Stochastic gradient descent: Use 1 example in each iteration
+* Mini-batch gradient descent: Use b examples in each iteration
+
+### Learning with Large Data Sets
+* “It’s not who has the best algorithm, it’s who has the most data”
+* Empirically shown that using a low-bias algorithm on a lot of data does very well
+* But working with these sets is computationally expensive
+	* Consider that m=100 million is common
+	* Then consider that the gradient descent for linear regression requires a summation over 1 to m.  Then this summation must be computed for a single step of descent.
+* Suppose a  supervised learning problem with a very large data set
+	* Verify if using all of the data is likely to perform much better than just using a small subset by plotting a learning curve for a range of values of m and verify that the algorithm has high variance when m is small
+		* i.e. large difference between J of cross-val and J of train
+	* If the learning curves already indicate bias, then it would be unlikely to greatly improve with more training examples and sticking with the subset is alright
+		* Influence towards bias by adding more features / nn nodes and layers
+
+### Stochastic Gradient Descent
+* Using SGD will allow the algorithm to scale better to large datasets
+* h(x) = theta * x, Jtrain = (1/2m)*(sum from 1 to m of (h(x) - y)^2) - Linear Reg for this example
+	* And this cost function is known to produce the concave bow-shaped function that has a single global optimum
+* Thus if m is large, then computing the derivative of the cost function for gradient descent is difficult because it must perform the summation from 1 to m for each step .  i.e. Batch gradient descent that looks at all the examples 
+* Stochastic gradient descent
+	* cost(theta, (x(i), y(i))) = (1/2) (h(x) - y)^2
+	* Jtrain = (1/m)(sum from i=1 to m of cost(theta, (x(i), y(i)))
+	* Steps
+		* 1. Randomly shuffle dataset as preprocessing
+		* 2. repeat 1-10x { for i -1,…m {
+						Thetaj = Thetaj - alpha(h(x) - y) * xj
+						for all j
+				}
+* SGD is scanning through the training examples
+	* Looks at the first example, takes a small gd step using just the cost of the first example
+	* Then onto the second example with another small step and so on 
+	* This is also a motivation for randomly shuffling the data
+* Rather than waiting for the summation of all the examples, instead use a small step using one example
+* SGD will general move the parameters in the direction of the global minimum, but not always.  
+* SGD will not settle at the global minimum but wander around in the near vicinity, which is alright in practice
+* Depending on the size of the training set, doing the SGD loop just once may not be enough, and it may require multiple passes of the m’s
+	* The inner loop might only need to be done once if m is very large
+* Going through all examples, SGD would have made m steps, while BGD would have only done one because of its summation 
+
+### Mini-Batch Gradient Descent
+* Sometimes can work faster than SGD
+* Use b examples in each iteration, b being the mini-batch size
+	* Typical choice of b=10, in range of 2-100
+* For an iteration
+	* Get b=10 examples, and perform a gradient descent step
+	* Thetaj = Thetaj - alpha * (1/10) * (sum of k=i to i+9 of h(x(k)) - y(k)*x(k)
+* Go over all examples, but in each iteration take the next b examples
+* SGD VS Mini-Batch
+	* Mini-batch is likely to outperform SGD only if you have a good vectorized implementation, and using a library to parallelize computations over the b examples
+
+### Stochastic Gradient Descent Convergence
+* How to ensure that SGD is running well and tune learning rate alpha?
+* For Batch gradient descent, would plot optimization cost function as a function of the number of iterations
+* Instead for SGD, during learning compute (theta, (x(i), y(i) before updating Theta using (x(i), y(i)) 
+	* i.e. right before updating, compute how well hypothesis is doing on that training example
+	* important to check before so that the training does not influence the result
+* To check for SGD convergence, check every thousand iterations with plotting the costs
+	* plot the average costs over the last 1000 examples processed by the algorithm, which gives a running estimate as to how well the algorithm is doing.
+* Learning curve plots
+	* Since SGD oscillates around the minimum, it will have small peaks and valleys
+		* To smooth out the line and perhaps get a clearer visible trend, use a smaller learning rate
+	* If the line is too erratic, expand the number of examples per plot point, perhaps 1000 -> 5000.  This will make the line smoother, but also delay results on how well the algorithm is doing
+	* Sometimes a curve might result with severe oscillations that looks like it’s not decreasing
+		* Expanding the number of examples per plot point could possibly reveal that the cost is actually decreasing 
+	* If the curve is going up, then the learning rate is diverging and the learning rate should be decreased
+* In most SGD implementations, the learning rate is held constant
+	* If you want the SGD to actually converge on a minimum, then you can try to slowly decrease the learning rate alpha over time
+	* `alpha = constant1 / (iteration # + constant 2)`
+		* this makes the algorithm more finicky since these two constants have to be tuned as well
+
+### Online Learning
+* Allows the modeling of problems where there is a continuous stream of data coming in and we would like to learn from that
+* Shipping service where user shops, and you offer to ship their package for some price
+	* y=1 if the user decides to use your shipping service, y=0 otherwise
+	* Features x capture properties of user, of origin/destination and asking price. We want to learn p(y=1 | x; Theta) to optimize price
+	* Using logistic regression
+* on the website, repeating forever:
+	* Get (x,y) pair corresponding to user
+	* Then update theta using just this (x,y):
+		* Thetaj = Thetaj - alpha *( h(x) - y ) * xj
+* After updating, discard that example
+* Only look at one example at a time
+* With a small number of users, it might be better to save away the data and train all at once
+* An advantage is that this can adapt to changing user preferences
+* Another problem:
+	* User searches for a phone model
+	* Have 100, return 10 results
+	* x = features of phone, how many words in user query match name of phone, how many words in query match descriptor of phone
+	* y =1 if user clicks link, y=0 otherwise
+	* Learn p(y=1 | x; Theta) - predicted click-through rate
+	* And therefore show user the 10 phones they are most likely to click on
+	* Everytime the user searches on the site, that produces 10 x,y pairs
+		* That is because for each of the results there are the features and the y of whether or not the phone was clicked on
+		* For each x,y pair, run the gradient descent
+* 
