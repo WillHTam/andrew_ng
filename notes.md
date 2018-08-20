@@ -578,24 +578,24 @@ function f = kernel(x1, x2),
 return [f1; f2; .... fm]
 # note: perform feature scaling before using Gaussian kernel, otherwise the abs(x - l))^2 term will be dominated by larger values
 ```
-	* Not all similarity functions /similarity(x,l)/ make valid kernels.  Need to make sure they satisfy Mercer’s Theorem to not diverge and use all the numerical tricks
-		* polynomial kernel: k(x,l) = (x’ * l)^2 , (x’ * l + 1)^3
-			* (x’*l + constant) ^ degree, usually worse than Gaussian kernel and must have inputs of positive x and l
-		* string kernel for strings (similarity between two strings is sine similarity), chi-square, histogram kernel, intersection kernel
-	* Multi-class
-		* Most SVM packages have it built in
-		* Otherwise use one v all method
-	* Logistic Regression vs SVMs
-		* n = number of features
-		* m = number of training examples
-		* If n is large ( relative to m ) 
-			* Use logistic regression, or SVM without a kernel (linear kernel)
-		* If n is small (1~1000), m is intermediate (10~10000)
-			* Use SVM with Gaussian kernel
-		* If n is small(1~1000), m is large(m=50000+)
-			* Create/add more features, then use logistic regression or SVM without a kernel (maybe outdated advice)
-		* => Neural networks likely to work well for most of these, but slower to train
-		* programming and problem solving with c++ dale and weems
+* Not all similarity functions /similarity(x,l)/ make valid kernels.  Need to make sure they satisfy Mercer’s Theorem to not diverge and use all the numerical tricks
+	* polynomial kernel: k(x,l) = (x’ * l)^2 , (x’ * l + 1)^3
+		* (x’*l + constant) ^ degree, usually worse than Gaussian kernel and must have inputs of positive x and l
+	* string kernel for strings (similarity between two strings is sine similarity), chi-square, histogram kernel, intersection kernel
+* Multi-class
+	* Most SVM packages have it built in
+	* Otherwise use one v all method
+* Logistic Regression vs SVMs
+	* n = number of features
+	* m = number of training examples
+	* If n is large ( relative to m ) 
+		* Use logistic regression, or SVM without a kernel (linear kernel)
+	* If n is small (1~1000), m is intermediate (10~10000)
+		* Use SVM with Gaussian kernel
+	* If n is small(1~1000), m is large(m=50000+)
+		* Create/add more features, then use logistic regression or SVM without a kernel (maybe outdated advice)
+	* => Neural networks likely to work well for most of these, but slower to train
+	* programming and problem solving with c++ dale and weems
 
 ## Unsupervised Learning
 * give a data set to an algorithm and ask it to find some sort of structure in it
@@ -946,8 +946,8 @@ z= Ureduce' * X;  % keep x0, don't use x0=1
  (1/(2m)) * sum(i:r(i,j)=1 of (prediction - y)^2) 
 	+ lambda/(2m) * sum(sum( theta^2 ) ) 
 ```
-		* Very similar to linear regression, where we want to minimize this squared error term. 
-	* Can we predict, perhaps by grouping similar movies, what rating a person would give to a movie they haven’t seen?
+* Very similar to linear regression, where we want to minimize this squared error term. 
+* Can we predict, perhaps by grouping similar movies, what rating a person would give to a movie they haven’t seen?
 
 ### Content-Based Recommender Systems
 * Suppose each movie has a set of features, x1 how much romance, and x2 how much action it has
@@ -1140,12 +1140,12 @@ end
 	* How to break down a problem into modules?
 	
 ### Sliding Window Classifier
-	* Image OCR is difficult because the boxes that must define the border of the text might have different sizes and different aspect ratios
-	* Scan an image by sliding/stepping over by a set amount of pixels, the box is able to centre and recognize the desired object 
-		* If that box is 50x50, perhaps speed up the process by using a 100x100 box and resize it down to 50x50
-	* For text, y=1 if there is text within the box, and y=0 is there is not
-	* The segmentation step will go through the found text box, and y=1 if it finds a gap between letters, and y=0 if not
-	* The segmentation identification allows for each letter to be separated out individually and identify each letter
+* Image OCR is difficult because the boxes that must define the border of the text might have different sizes and different aspect ratios
+* Scan an image by sliding/stepping over by a set amount of pixels, the box is able to centre and recognize the desired object 
+	* If that box is 50x50, perhaps speed up the process by using a 100x100 box and resize it down to 50x50
+* For text, y=1 if there is text within the box, and y=0 is there is not
+* The segmentation step will go through the found text box, and y=1 if it finds a gap between letters, and y=0 if not
+* The segmentation identification allows for each letter to be separated out individually and identify each letter
 
 ### Artificial Data Synthesis
 * Since the advantages of a low bias algorithm with a large training set are known, creating artificial data can be useful to create a huge training set
