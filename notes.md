@@ -1,5 +1,15 @@
 # NG
-## Regression
+## Main Topics
+* Supervised Learning (x(i), y(i)) 
+	* Linear regression, logistic regression, neural networks, SVMs
+* Unsupervised Learning x(i)
+	* K-means, PCA, Anomaly detection
+* Applications
+	* Recommender systems, large scale machine learning
+* Tuning /debugging
+	* Bias/variance, regularization
+	* Learning curves, error analysis, ceiling analysis
+
 ### Class Terms
 * Assume 1-indexed vectors
 * Capitals for matrices, lowercase for matrices, scalars, numbers
@@ -19,6 +29,7 @@
 	* a = a+1 is assertion check
 * Contour graph is like looking at one of those 3d graphs from the top.  A similarly colored line would yield the same loss.
 
+## Regression
 ### Gradient Descent
 * Gradient descent takes steps, evaluating and looking for the minimum.  However, it is possible that it will get stuck in a local minimum, and not find the true global minimum
 * The alpha / learning rate decides how large the adjustments are in each step of gd
@@ -1098,4 +1109,66 @@ end
 	* Everytime the user searches on the site, that produces 10 x,y pairs
 		* That is because for each of the results there are the features and the y of whether or not the phone was clicked on
 		* For each x,y pair, run the gradient descent
-* 
+
+### Map-Reduce and Data Parallelism
+* Perhaps the problem is too large for a single computer
+* Map-reduce
+	* Using batch gradient descent of batch size 400
+	* With 4 machines
+		* Machine 1 does examples 1-100 of the batch, Machine 2 does 101 -200 and so forth. Each produces their own temporary j value to use in the final combination
+		* This allows for the parallelization of the problem
+	* Combine these into
+		* Thetaj = Thetaj - alpha * (1/400) * ( tempj1 + tempj2 + tempj3 + tempj4)
+		* This provides the same result as the gradient step formula as stated previously
+	* This results in a 4x speedup minus network latencies and other slowdowns
+* To use map-reduce, ask the question, /can the algorithm be expressed as a summation over the training set?/
+	* It turns out many learning algorithms can be expressed as computing sums of functions over the training set
+	* For example, the cost function of logistic regression and its partial derivative contain summations, and thus can be split into smaller problems for multiple machines, whose results can be sent to a central machine for combination
+* Map reduce can even be applied on a single computer.
+	* Since a computer can have multiple processing cores, each core can handle a  portion of the summation 
+* Some linear algebra libraries automatically parallelize, given that the vectorization is good
+* Applying map-reduce to train a neural network on ten machines.  In each iteration, each machine will compute forward and back propagation on 1/10 of the data to compute the derivative with respect to that 1/10 of the data 
+
+## Photo OCR
+* Description of a complex machine learning problem
+* Creating a Machine Learning Pipeline
+* How to allocate resources when deciding what to try next
+
+### Problem Description and Pipeline
+*  Image -> Text detection in the image -> character segmentation -> character classification
+	* This is an example of a machine learning pipeline where a set of modules act on the same input to produce a desired output
+	* How to break down a problem into modules?
+	
+### Sliding Window Classifier
+	* Image OCR is difficult because the boxes that must define the border of the text might have different sizes and different aspect ratios
+	* Scan an image by sliding/stepping over by a set amount of pixels, the box is able to centre and recognize the desired object 
+		* If that box is 50x50, perhaps speed up the process by using a 100x100 box and resize it down to 50x50
+	* For text, y=1 if there is text within the box, and y=0 is there is not
+	* The segmentation step will go through the found text box, and y=1 if it finds a gap between letters, and y=0 if not
+	* The segmentation identification allows for each letter to be separated out individually and identify each letter
+
+### Artificial Data Synthesis
+* Since the advantages of a low bias algorithm with a large training set are known, creating artificial data can be useful to create a huge training set
+* Two forms
+	* Creating new data from scratch
+	* Already having a small labeled training set and amplifying it into a larger one
+* One way to create a letter set would be to take a large number of different fonts and put them on different backgrounds
+* Introducing warping and other image distortions to amplify the data set
+* Taking a clean audio clip and adding different background sounds
+* Distortions introduced should be representative of the type of noise/distortions in the test set. 
+	* It usually does not help to add purely random/meaningless noise to the data
+* If you were to make one copy of each example, so that there were now two duplicates of each example to double the training set, that would end up with the same parameters Theta
+* Getting more data
+1. Make sure you have a low bias classifier before expending the effort (plot learning curves).  Keep increasing the number of features/number of hidden units in neural network until you have a low bias classifier
+2. Consider how much work would it take to get 10x data as we currently have.  It’s commonly not that hard, so that will be very useful 
+	* Consider artificial data synthesis
+	* Collect/label yourself
+	* Crowdsource it
+
+### Ceiling Analysis
+* Which part of the pipeline to work on next?
+* Which module of the pipeline should you spend the most time trying to improve?
+* Important to have a single metric for the overall system, such as accuracy for the text OCR problem
+* Give the first step labeled data (i.e. give it the next module perfectly labeled/identified data), and see the new performance
+	* Then continue on with the following steps 
+* This allows seeing which modules give the best benefit or problem areas
