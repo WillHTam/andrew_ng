@@ -29,7 +29,6 @@ double prediction = theta.transpose() * x;
     % delta being a n+1 dimensional vector representing the gradient step formula
         % the summation of (h(x^i) - y^i) represeted as vector multiplied by x, obviously also a vector 
 
-
 % suppose three vectors u,v,w
 % unvectorized is 
 for j = 1:3,
